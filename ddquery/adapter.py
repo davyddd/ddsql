@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generic, Optional, Sequence, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, Sequence, Type, TypeVar
 
 from ddutils.annotation_helpers import is_subclass
 
 from ddquery.query import Result
 from ddquery.serializer import Serializer
-from ddquery.sqlbase import SQLBase
+
+if TYPE_CHECKING:
+    from ddquery.sqlbase import SQLBase  # noqa: TC004
 
 
 class Adapter(ABC):
