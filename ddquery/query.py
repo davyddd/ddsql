@@ -41,27 +41,26 @@ class Query(Generic[DataT]):
 
     @staticmethod
     def get_template(text: Optional[str] = None, path: Optional[str] = None) -> Template:
-        if SQL_TEMPLATES_DIR is None:
-            raise ValueError(
-                'SQL Templates dir is not defined. Make sure the SQL_TEMPLATES_DIR environment variable is set correctly.'
-            )
-
-        environment = Environment(
-            loader=FileSystemLoader(Path(SQL_TEMPLATES_DIR)),
-            trim_blocks=True,
-            lstrip_blocks=True,
-            keep_trailing_newline=True,
-            enable_async=True,
-        )
-
         if text:
-            template = environment.from_string(text)
+            file_system_loader = FileSystemLoader(Path('.'))
+            method = 'from_string'
+            query = text
         elif path:
-            template = environment.get_template(path)
+            if SQL_TEMPLATES_DIR is None:
+                raise ValueError(
+                    'SQL Templates dir is not defined. Make sure the SQL_TEMPLATES_DIR environment variable is set correctly.'
+                )
+            file_system_loader = FileSystemLoader(Path(SQL_TEMPLATES_DIR))
+            method = 'get_template'
+            query = path
         else:
             raise ValueError('One of `text` or `path` must be specified')
 
-        return template
+        environment = Environment(
+            loader=file_system_loader, trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True, enable_async=True
+        )
+
+        return getattr(environment, method)(query)
 
     def update_globals(self, envs: Optional[Dict[str, Any]] = None):
         if envs:
