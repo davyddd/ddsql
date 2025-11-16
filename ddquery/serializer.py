@@ -1,0 +1,76 @@
+from collections.abc import Callable, Iterable
+from datetime import date, datetime
+from typing import Any, Dict, Sequence, Union
+from uuid import UUID
+
+
+class Serializer:
+    @property
+    def template_functions(self) -> Dict[str, Callable[[Any], str]]:
+        return {'serialize_value': self.serialize_value, 'serialize_data': self.serialize_data}
+
+    def serialize_data(self, data: Sequence[Sequence[Any]]) -> str:
+        rows = []
+        for values in data:
+            row = ', '.join(self.serialize_value(value) for value in values)
+            row = f'({row}),'
+            rows.append(row)
+
+        return '\n'.join(rows)[:-1]
+
+    def serialize_value(self, value: Any) -> str:
+        if value is None:
+            return self.serialize_none(value)
+        elif isinstance(value, bool):
+            return self.serialize_bool(value)
+        elif isinstance(value, (int, float)):
+            return self.serialize_number(value)
+        elif isinstance(value, str):
+            return self.serialize_string(value)
+        elif isinstance(value, UUID):
+            return self.serialize_uuid(value)
+        elif isinstance(value, datetime):
+            return self.serialize_datetime(value)
+        elif isinstance(value, date):
+            # the check for date must come after datetime,
+            # because a datetime instance can also be identified as a date
+            return self.serialize_date(value)
+        elif isinstance(value, Sequence):
+            return self.serialize_sequence(value)
+        else:
+            return self.serialize_other_object(value)
+
+    @staticmethod
+    def serialize_none(value) -> str:  # noqa: ARG004
+        return 'NULL'
+
+    @staticmethod
+    def serialize_bool(value: bool) -> str:
+        return f"'{value}'"
+
+    @staticmethod
+    def serialize_number(value: Union[int, float]) -> str:
+        return f"'{value}'"
+
+    @staticmethod
+    def serialize_string(value: str) -> str:
+        return f"'{value}'"
+
+    @staticmethod
+    def serialize_uuid(value: UUID) -> str:
+        return f"'{value}'"
+
+    @staticmethod
+    def serialize_date(value: date) -> str:
+        return f"'{value.isoformat()}'"
+
+    @staticmethod
+    def serialize_datetime(value: datetime) -> str:
+        return f"'{value.isoformat()}'"
+
+    def serialize_sequence(self, value: Iterable) -> str:
+        items = ', '.join(self.serialize_value(item) for item in value)
+        return f'({items})'
+
+    def serialize_other_object(self, value: Any) -> str:
+        raise NotImplementedError()
