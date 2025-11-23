@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Generic, Sequence, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, Sequence, Type, TypeVar
 
 from ddutils.annotation_helpers import is_subclass
 
-from ddquery.query import Result
 from ddquery.serializers import Serializer
+
+if TYPE_CHECKING:
+    from ddquery.query import Result
+    from ddquery.sqlbase import SQLBase
 
 
 class Adapter(ABC):
@@ -19,9 +24,7 @@ class Adapter(ABC):
                 'Subclass of Adapter must define a valid serializer attribute that is a subclass of Serializer'
             )
 
-    def __init__(self, sql) -> None:
-        # Uses `ddquery.sqlbase.SQLBase`
-        # Type hint omitted to avoid circular imports
+    def __init__(self, sql: SQLBase) -> None:
         self.sql = sql
 
     def get_params(self) -> Dict[str, Any]:
@@ -49,7 +52,7 @@ class AdapterDescriptor(Generic[AdapterT]):
     def __init__(self, adapter_class: Type[AdapterT]):  # noqa: UP006
         self.adapter_class = adapter_class
 
-    def __get__(self, sql, sql_class=None) -> AdapterT:
+    def __get__(self, sql: SQLBase, sql_class: Optional[Type[SQLBase]] = None) -> AdapterT:  # noqa: UP006, UP007
         return self.adapter_class(sql)
 
 
