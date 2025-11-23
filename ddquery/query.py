@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, Generic, List, Optional, Sequence, Type, TypeVar
+from typing import Any, Dict, Generic, Optional, Sequence, Tuple, Type, TypeVar
 
 from jinja2 import Environment, FileSystemLoader, Template
 
@@ -23,21 +23,18 @@ class Result(Generic[DataT]):
             return None
         return self.model(**self.rows[0])
 
-    def get_list(self) -> List[DataT]:
-        return [self.model(**row) for row in self.rows]
+    def get_list(self) -> Tuple[DataT, ...]:
+        return tuple(self.model(**row) for row in self.rows)
 
 
 class Query(Generic[DataT]):
     model: Type[DataT]
     template: Template
 
-    def __init__(
-        self, model: Type[DataT], text: Optional[str] = None, path: Optional[str] = None, envs: Optional[Dict[str, Any]] = None
-    ):
+    def __init__(self, model: Type[DataT], text: Optional[str] = None, path: Optional[str] = None):
         self.model = model
 
         self.template = self.get_template(text, path)
-        self.update_globals(envs)
 
     @staticmethod
     def get_template(text: Optional[str] = None, path: Optional[str] = None) -> Template:
@@ -71,7 +68,7 @@ class Query(Generic[DataT]):
         strings = sql.split('\n')
         return '\n'.join([string.strip() for string in strings])
 
-    async def render_template(self, params: Dict[str, Any], template_functions: Dict[str, Any]) -> str:
+    async def render_template(self, params: Dict[str, Any], template_functions: Optional[Dict[str, Any]] = None) -> str:
         self.update_globals(template_functions)
 
         rendered_template = await self.template.render_async(**params)
