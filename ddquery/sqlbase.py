@@ -47,3 +47,6 @@ class SQLBase(ABC):
     def with_params(self, **params: Any) -> Self:
         self.params = {**self.params, **params}
         return self
+
+
+__all__ = ('SQLBase',)

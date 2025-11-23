@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, Sequence, Type, 
 from ddutils.annotation_helpers import is_subclass
 
 from ddquery.query import Result
-from ddquery.serializer import Serializer
+from ddquery.serializers import Serializer
 
 if TYPE_CHECKING:
     from ddquery.sqlbase import SQLBase  # noqa: TC004
@@ -49,3 +49,6 @@ class AdapterDescriptor(Generic[AdapterT]):
 
     def __get__(self, sql: SQLBase, sql_class: Optional[Type[SQLBase]] = None) -> AdapterT:  # noqa: UP006, UP007
         return self.adapter_class(sql)
+
+
+__all__ = ('Adapter', 'AdapterDescriptor')

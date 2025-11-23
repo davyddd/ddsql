@@ -7,16 +7,7 @@ from uuid import UUID
 class Serializer:
     @property
     def template_functions(self) -> Dict[str, Callable[[Any], str]]:
-        return {'serialize_value': self.serialize_value, 'serialize_data': self.serialize_data}
-
-    def serialize_data(self, data: Sequence[Sequence[Any]]) -> str:
-        rows = []
-        for values in data:
-            row = ', '.join(self.serialize_value(value) for value in values)
-            row = f'({row}),'
-            rows.append(row)
-
-        return '\n'.join(rows)[:-1]
+        return {'serialize_value': self.serialize_value}
 
     def serialize_value(self, value: Any) -> str:
         if value is None:
@@ -74,3 +65,6 @@ class Serializer:
 
     def serialize_other_object(self, value: Any) -> str:
         raise NotImplementedError()
+
+
+__all__ = ('Serializer',)

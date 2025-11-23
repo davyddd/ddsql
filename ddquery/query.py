@@ -79,3 +79,6 @@ class Query(Generic[DataT]):
 
     def build_result(self, rows: Sequence[dict[str, Any]]) -> Result[DataT]:
         return Result(rows=rows, model=self.model)
+
+
+__all__ = ('Result', 'Query')

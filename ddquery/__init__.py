@@ -1,3 +1,3 @@
-from . import adapter, engines, query, serializer, sqlbase
+from . import adapter, query, serializers, sqlbase
 
-__all__ = ('adapter', 'query', 'sqlbase', 'serializer', 'engines')
+__all__ = ('adapter', 'query', 'sqlbase', 'serializers')
