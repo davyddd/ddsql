@@ -15,7 +15,7 @@ class TestResult(TestCase):
 
         # Assert
         self.assertIsNone(user)
-        self.assertEqual(users, tuple())
+        self.assertEqual(users, ())
 
     def test_fill(self):
         # Arrange

@@ -1,4 +1,3 @@
-import os
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import patch
 
@@ -14,13 +13,13 @@ def serialize_value(value):
 class TestQuery(IsolatedAsyncioTestCase):
     def test_initialization_without_text_or_path(self):
         # Act & Assert
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ValueError):
             Query(model=User)
 
     def test_initialization_without_env_var(self):
         # Act & Assert
-        with self.assertRaises(ValueError) as context:
-            Query(model=User, path=f'user.sql')
+        with self.assertRaises(ValueError):
+            Query(model=User, path='user.sql')
 
     async def test_render_template_from_text(self):
         # Arrange
@@ -32,7 +31,7 @@ class TestQuery(IsolatedAsyncioTestCase):
         # Assert
         self.assertEqual(result, """SELECT * FROM users WHERE user_id = 1;""")
 
-    @patch("ddquery.query.SQL_TEMPLATES_DIR", TESTS_TEMPLATES_DIR)
+    @patch('ddquery.query.SQL_TEMPLATES_DIR', TESTS_TEMPLATES_DIR)
     async def test_render_template_from_path(self):
         # Arrange
         query = Query(model=User, path='user.sql')
