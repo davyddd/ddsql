@@ -34,7 +34,7 @@ class BaseSerializer:
 
     @staticmethod
     def serialize_none(value) -> str:  # noqa: ARG004
-        return 'null'
+        return 'NULL'
 
     @staticmethod
     def serialize_bool(value: bool) -> str:

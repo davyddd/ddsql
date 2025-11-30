@@ -9,7 +9,7 @@ from ddquery.serializers import BaseSerializer
 
 serializer = BaseSerializer()
 collection = (1, 'hello', None, False)
-serialized_collection = "(1, 'hello', null, false)"
+serialized_collection = "(1, 'hello', NULL, false)"
 
 
 class CustomObject:
@@ -19,7 +19,7 @@ class CustomObject:
 class TestBaseSerializer(TestCase):
     def test_serialize_none(self):
         # Act & Assert
-        self.assertEqual(serializer.serialize_value(None), 'null')
+        self.assertEqual(serializer.serialize_value(None), 'NULL')
 
     @parameterized.expand(((True, 'true'), (False, 'false')))
     def test_serialize_bool(self, value, result):
