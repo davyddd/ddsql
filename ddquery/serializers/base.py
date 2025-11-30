@@ -1,6 +1,7 @@
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Collection, Mapping
 from datetime import date, datetime
-from typing import Any, Dict, Sequence, Union
+from decimal import Decimal
+from typing import Any, Dict, Union
 from uuid import UUID
 
 
@@ -14,7 +15,7 @@ class BaseSerializer:
             return self.serialize_none(value)
         elif isinstance(value, bool):
             return self.serialize_bool(value)
-        elif isinstance(value, (int, float)):
+        elif isinstance(value, (int, float, Decimal)):
             return self.serialize_number(value)
         elif isinstance(value, str):
             return self.serialize_string(value)
@@ -26,22 +27,22 @@ class BaseSerializer:
             # the check for date must come after datetime,
             # because a datetime instance can also be identified as a date
             return self.serialize_date(value)
-        elif isinstance(value, Sequence):
-            return self.serialize_sequence(value)
+        elif isinstance(value, Collection) and not isinstance(value, Mapping):
+            return self.serialize_collection(value)
         else:
             return self.serialize_other_object(value)
 
     @staticmethod
     def serialize_none(value) -> str:  # noqa: ARG004
-        return 'NULL'
+        return 'null'
 
     @staticmethod
     def serialize_bool(value: bool) -> str:
-        return f"'{value}'"
+        return f'{value}'.lower()
 
     @staticmethod
-    def serialize_number(value: Union[int, float]) -> str:
-        return f"'{value}'"
+    def serialize_number(value: Union[int, float, Decimal]) -> str:
+        return f'{value}'
 
     @staticmethod
     def serialize_string(value: str) -> str:
@@ -52,14 +53,14 @@ class BaseSerializer:
         return f"'{value}'"
 
     @staticmethod
-    def serialize_date(value: date) -> str:
-        return f"'{value.isoformat()}'"
-
-    @staticmethod
     def serialize_datetime(value: datetime) -> str:
         return f"'{value.isoformat()}'"
 
-    def serialize_sequence(self, value: Iterable) -> str:
+    @staticmethod
+    def serialize_date(value: date) -> str:
+        return f"'{value.isoformat()}'"
+
+    def serialize_collection(self, value: Collection) -> str:
         items = ', '.join(self.serialize_value(item) for item in value)
         return f'({items})'
 
