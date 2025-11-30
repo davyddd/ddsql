@@ -1,6 +1,6 @@
 from fabric.api import local
 
-SERVICE_NAME = 'ddquery'
+SERVICE_NAME = 'ddquery_ddquery'
 
 
 def build():
