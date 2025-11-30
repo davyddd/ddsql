@@ -1,5 +1,4 @@
 from datetime import date, datetime
-from typing import Iterable
 from uuid import UUID
 
 from ddquery.serializers import BaseSerializer
@@ -11,16 +10,12 @@ class PostgresSerializer(BaseSerializer):
         return f"'{value}'::uuid"
 
     @staticmethod
-    def serialize_date(value: date) -> str:
-        return f"'{value.isoformat()}'::date"
+    def serialize_datetime(value: datetime) -> str:
+        return f"'{value.isoformat()}'::timestamp"
 
     @staticmethod
-    def serialize_datetime(value: datetime) -> str:
-        return f"'{value.isoformat()}'"
-
-    def serialize_sequence(self, value: Iterable) -> str:
-        items = ', '.join(self.serialize_value(item) for item in value)
-        return f'array[{items}]'
+    def serialize_date(value: date) -> str:
+        return f"'{value.isoformat()}'::date"
 
 
 __all__ = ('PostgresSerializer',)
