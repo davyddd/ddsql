@@ -2,8 +2,8 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.mock import patch
 
 from ddquery.query import Query, Result
-from tests.helpers.models import User
-from tests.helpers.utils import TESTS_TEMPLATES_DIR
+from tests.data.constants import TESTS_TEMPLATES_DIR
+from tests.data.models import User
 
 
 def serialize_value(value):

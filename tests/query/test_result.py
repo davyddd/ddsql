@@ -1,7 +1,7 @@
 from unittest import TestCase
 
 from ddquery.query import Result
-from tests.helpers.models import User
+from tests.data.models import User
 
 
 class TestResult(TestCase):
