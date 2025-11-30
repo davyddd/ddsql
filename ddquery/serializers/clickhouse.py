@@ -2,10 +2,10 @@ from datetime import date, datetime
 from typing import Iterable
 from uuid import UUID
 
-from ddquery.serializers import Serializer
+from ddquery.serializers import BaseSerializer
 
 
-class ClickhouseSerializer(Serializer):
+class ClickhouseSerializer(BaseSerializer):
     @staticmethod
     def serialize_uuid(value: UUID) -> str:
         return f"toUUID('{value}')"

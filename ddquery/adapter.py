@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, Sequence, Type, 
 
 from ddutils.annotation_helpers import is_subclass
 
-from ddquery.serializers import Serializer
+from ddquery.serializers import BaseSerializer
 
 if TYPE_CHECKING:
     from ddquery.query import Result
@@ -13,13 +13,13 @@ if TYPE_CHECKING:
 
 
 class Adapter(ABC):
-    serializer: Serializer
+    serializer: BaseSerializer
 
     @classmethod
     def __init_subclass__(cls, **kwargs):
         serializer = getattr(cls, 'serializer', None)
         serializer_class = getattr(serializer, '__class__', None)
-        if not is_subclass(serializer_class, Serializer):
+        if not is_subclass(serializer_class, BaseSerializer):
             raise NotImplementedError(
                 'Subclass of Adapter must define a valid serializer attribute that is a subclass of Serializer'
             )

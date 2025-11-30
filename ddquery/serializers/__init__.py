@@ -1,5 +1,5 @@
-from .base import Serializer
+from .base import BaseSerializer
 from .clickhouse import ClickhouseSerializer
 from .postgres import PostgresSerializer
 
-__all__ = ('Serializer', 'PostgresSerializer', 'ClickhouseSerializer')
+__all__ = ('BaseSerializer', 'ClickhouseSerializer', 'PostgresSerializer')

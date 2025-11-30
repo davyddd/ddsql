@@ -4,7 +4,7 @@ from typing import Any, Dict, Sequence, Union
 from uuid import UUID
 
 
-class Serializer:
+class BaseSerializer:
     @property
     def template_functions(self) -> Dict[str, Callable[[Any], str]]:
         return {'serialize_value': self.serialize_value}
@@ -67,4 +67,4 @@ class Serializer:
         raise NotImplementedError()
 
 
-__all__ = ('Serializer',)
+__all__ = ('BaseSerializer',)
