@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "ddquery"
-description = "Query Library"
+name = "ddsql"
+description = "SQL Query Library"
 version = "0.0.1"
 authors = ["davyddd"]
 license = "MIT"
-repository = "https://github.com/davyddd/ddquery"
+repository = "https://github.com/davyddd/ddsql"
 readme = "README.md"
-keywords = ["python", "ddquery"]
-packages = [{include = "ddquery"}]
+keywords = ["python", "ddsql"]
+packages = [{include = "ddsql"}]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.15"

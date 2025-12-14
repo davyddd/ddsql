@@ -2,7 +2,7 @@ from datetime import date, datetime
 from unittest import TestCase
 from uuid import UUID
 
-from ddquery.serializers import ClickhouseSerializer
+from ddsql.serializers import ClickhouseSerializer
 
 serializer = ClickhouseSerializer()
 

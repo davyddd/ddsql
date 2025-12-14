@@ -1,9 +1,9 @@
 from collections.abc import Sequence
 from typing import Any, Dict
 
-from ddquery.adapter import Adapter, AdapterDescriptor
-from ddquery.serializers import BaseSerializer
-from ddquery.sqlbase import SQLBase
+from ddsql.adapter import Adapter, AdapterDescriptor
+from ddsql.serializers import BaseSerializer
+from ddsql.sqlbase import SQLBase
 
 
 class MockAdapter(Adapter):

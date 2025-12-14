@@ -1,6 +1,6 @@
 from unittest import IsolatedAsyncioTestCase
 
-from ddquery.query import Query
+from ddsql.query import Query
 from tests.data.mock_sql import MockSQL
 from tests.data.models import User
 

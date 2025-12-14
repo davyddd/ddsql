@@ -5,11 +5,11 @@ from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, Sequence, Type, 
 
 from ddutils.annotation_helpers import is_subclass
 
-from ddquery.serializers import BaseSerializer
+from ddsql.serializers import BaseSerializer
 
 if TYPE_CHECKING:
-    from ddquery.query import Result
-    from ddquery.sqlbase import SQLBase
+    from ddsql.query import Result
+    from ddsql.sqlbase import SQLBase
 
 
 class Adapter(ABC):

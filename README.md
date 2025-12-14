@@ -1,19 +1,19 @@
-# DDQuery
+# DDSQL
 
-[![pypi](https://img.shields.io/pypi/v/ddquery.svg)](https://pypi.python.org/pypi/ddquery)
-[![downloads](https://static.pepy.tech/badge/ddquery/month)](https://pepy.tech/project/ddquery)
-[![versions](https://img.shields.io/pypi/pyversions/ddquery.svg)](https://github.com/davyddd/ddquery)
-[![codecov](https://codecov.io/gh/davyddd/ddquery/branch/main/graph/badge.svg)](https://app.codecov.io/github/davyddd/ddquery)
-[![license](https://img.shields.io/github/license/davyddd/ddquery.svg)](https://github.com/davyddd/ddquery/blob/main/LICENSE)
+[![pypi](https://img.shields.io/pypi/v/ddsql.svg)](https://pypi.python.org/pypi/ddsql)
+[![downloads](https://static.pepy.tech/badge/ddsql/month)](https://pepy.tech/project/ddsql)
+[![versions](https://img.shields.io/pypi/pyversions/ddsql.svg)](https://github.com/davyddd/ddsql)
+[![codecov](https://codecov.io/gh/davyddd/ddsql/branch/main/graph/badge.svg)](https://app.codecov.io/github/davyddd/ddsql)
+[![license](https://img.shields.io/github/license/davyddd/ddsql.svg)](https://github.com/davyddd/ddsql/blob/main/LICENSE)
 
-**DDQuery** is a Python library for building SQL queries with Jinja2 template rendering and database adapter support.
+**DDSQL** is a Python library for building SQL queries with Jinja2 template rendering and database adapter support.
 Query results are automatically deserialized into typed models.
 
 ## Installation
 
 Install the library using pip:
 ```bash
-pip install ddquery
+pip install ddsql
 ```
 
 ## Serializer
@@ -39,7 +39,7 @@ or create your own by inheriting from `BaseSerializer`.
 If you need to serialize a type not listed in the table, override the `serialize_other_object` method in your serializer:
 
 ```python
-from ddquery.serializers import BaseSerializer
+from ddsql.serializers import BaseSerializer
 
 
 class CustomSerializer(BaseSerializer):
@@ -62,7 +62,7 @@ WHERE
 To add custom functions to templates, override the `template_functions` property:
 
 ```python
-from ddquery.serializers import BaseSerializer
+from ddsql.serializers import BaseSerializer
 
 
 class CustomSerializer(BaseSerializer):
@@ -82,8 +82,8 @@ and define two required elements:
 - **_execute** method – the database-specific query execution logic.
 
 ```python
-from ddquery.adapter import Adapter
-from ddquery.serializers import PostgresSerializer
+from ddsql.adapter import Adapter
+from ddsql.serializers import PostgresSerializer
 
 
 class PostgresAdapter(Adapter):
@@ -104,8 +104,8 @@ It serves as the central point that connects queries with database adapters.
 Create a subclass with one or more adapters:
 
 ```python
-from ddquery.sqlbase import SQLBase
-from ddquery.adapter import AdapterDescriptor
+from ddsql.sqlbase import SQLBase
+from ddsql.adapter import AdapterDescriptor
 
 
 class SQL(SQLBase):
@@ -116,7 +116,7 @@ class SQL(SQLBase):
 Execution example:
 
 ```python
-from ddquery.query import Query
+from ddsql.query import Query
 
 
 query = Query(...)
@@ -136,7 +136,7 @@ Required parameters:
 ### Inline Template (text)
 
 ```python
-from ddquery.query import Query
+from ddsql.query import Query
 
 
 query = Query(
@@ -156,7 +156,7 @@ export SQL_TEMPLATES_DIR=/app/src/templates/sql/
 Then use a relative path:
 
 ```python
-from ddquery.query import Query
+from ddsql.query import Query
 
 
 # Loads template from /app/src/templates/sql/users/get_by_id.sql
@@ -180,10 +180,10 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
-from ddquery.query import Query
-from ddquery.sqlbase import SQLBase
-from ddquery.adapter import Adapter, AdapterDescriptor
-from ddquery.serializers import PostgresSerializer
+from ddsql.query import Query
+from ddsql.sqlbase import SQLBase
+from ddsql.adapter import Adapter, AdapterDescriptor
+from ddsql.serializers import PostgresSerializer
 
 
 class PostgresAdapter(Adapter):

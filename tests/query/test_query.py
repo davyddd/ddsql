@@ -1,7 +1,7 @@
 from unittest import IsolatedAsyncioTestCase
 from unittest.mock import patch
 
-from ddquery.query import Query, Result
+from ddsql.query import Query, Result
 from tests.data.constants import TESTS_TEMPLATES_DIR
 from tests.data.models import User
 
@@ -31,7 +31,7 @@ class TestQuery(IsolatedAsyncioTestCase):
         # Assert
         self.assertEqual(result, """SELECT * FROM users WHERE user_id = 1;""")
 
-    @patch('ddquery.query.SQL_TEMPLATES_DIR', TESTS_TEMPLATES_DIR)
+    @patch('ddsql.query.SQL_TEMPLATES_DIR', TESTS_TEMPLATES_DIR)
     async def test_render_template_from_path(self):
         # Arrange
         query = Query(model=User, path='user.sql')

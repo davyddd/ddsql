@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from ddquery.query import Result
+from ddsql.query import Result
 from tests.data.models import User
 
 

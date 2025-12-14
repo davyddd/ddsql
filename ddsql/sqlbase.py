@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, Any, Dict
 from ddutils.annotation_helpers import is_subclass
 from ddutils.class_helpers import classproperty
 
-from ddquery.adapter import Adapter
+from ddsql.adapter import Adapter
 
 if TYPE_CHECKING:
-    from ddquery.query import Query
+    from ddsql.query import Query
 
 
 class SQLBase(ABC):

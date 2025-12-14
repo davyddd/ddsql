@@ -5,7 +5,7 @@ from uuid import UUID
 
 from parameterized import parameterized
 
-from ddquery.serializers import BaseSerializer
+from ddsql.serializers import BaseSerializer
 
 serializer = BaseSerializer()
 collection = (1, 'hello', None, False)

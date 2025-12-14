@@ -27,7 +27,7 @@ jobs:
             -   name: Check if version already exists
                 run: |
                     PACKAGE_VERSION=$(poetry version -s)
-                    PACKAGE_INFO=$(curl -s https://pypi.org/pypi/ddquery/json)
+                    PACKAGE_INFO=$(curl -s https://pypi.org/pypi/ddsql/json)
                     if echo "$PACKAGE_INFO" | grep -q "\"$PACKAGE_VERSION\""; then
                         echo "Version $PACKAGE_VERSION already exists"
                         exit 1
@@ -69,7 +69,7 @@ jobs:
             - tests
         environment:
             name: pypi
-            url: https://pypi.org/p/ddquery
+            url: https://pypi.org/p/ddsql
         permissions:
             contents: write
             id-token: write
@@ -112,7 +112,7 @@ jobs:
                 run: poetry install --with test
                 shell: bash
             -   name: Tests
-                run: pytest --cov=ddquery --cov-report=xml
+                run: pytest --cov=ddsql --cov-report=xml
                 shell: bash
             -   name: Upload results to Codecov
                 uses: codecov/codecov-action@v4

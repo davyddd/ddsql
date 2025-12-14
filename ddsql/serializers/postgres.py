@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from uuid import UUID
 
-from ddquery.serializers import BaseSerializer
+from ddsql.serializers import BaseSerializer
 
 
 class PostgresSerializer(BaseSerializer):
