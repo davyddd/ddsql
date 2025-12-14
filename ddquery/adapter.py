@@ -27,12 +27,9 @@ class Adapter(ABC):
     def __init__(self, sql: SQLBase) -> None:
         self.sql = sql
 
-    def get_params(self) -> Dict[str, Any]:
-        return {k: self.serializer.serialize_value(v) for k, v in self.sql.params.items()}
-
     async def get_query(self) -> str:
         return await self.sql.query.render_template(
-            params=self.get_params(), template_functions=self.serializer.template_functions
+            params=self.sql.params, template_functions=self.serializer.template_functions
         )
 
     async def execute(self) -> Result:
