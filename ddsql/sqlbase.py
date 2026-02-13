@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import TYPE_CHECKING, Any, Dict
+from typing import TYPE_CHECKING, Any, Dict, TypeVar
 
 from ddutils.annotation_helpers import is_subclass
 from ddutils.class_helpers import classproperty
@@ -10,6 +10,8 @@ from ddsql.adapter import Adapter
 
 if TYPE_CHECKING:
     from ddsql.query import Query
+
+T = TypeVar('T', bound='SQLBase')
 
 
 class SQLBase(ABC):
@@ -48,7 +50,7 @@ class SQLBase(ABC):
         self.query = query
         self.params = {}
 
-    def with_params(self, **params: Any) -> SQLBase:
+    def with_params(self: T, **params: Any) -> T:
         self.params = {**self.params, **params}
         return self
 
