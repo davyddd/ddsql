@@ -45,20 +45,25 @@ class BaseSerializer:
         return f'{value}'
 
     @staticmethod
-    def serialize_string(value: str) -> str:
-        return f"'{value}'"
+    def escape_string(value: str) -> str:
+        # SQL standard escaping: a single quote is escaped by doubling it
+        return value.replace("'", "''")
 
-    @staticmethod
-    def serialize_uuid(value: UUID) -> str:
-        return f"'{value}'"
+    @classmethod
+    def serialize_string(cls, value: str) -> str:
+        return f"'{cls.escape_string(value)}'"
 
-    @staticmethod
-    def serialize_datetime(value: datetime) -> str:
-        return f"'{value.isoformat()}'"
+    @classmethod
+    def serialize_uuid(cls, value: UUID) -> str:
+        return f"'{cls.escape_string(str(value))}'"
 
-    @staticmethod
-    def serialize_date(value: date) -> str:
-        return f"'{value.isoformat()}'"
+    @classmethod
+    def serialize_datetime(cls, value: datetime) -> str:
+        return f"'{cls.escape_string(value.isoformat())}'"
+
+    @classmethod
+    def serialize_date(cls, value: date) -> str:
+        return f"'{cls.escape_string(value.isoformat())}'"
 
     def serialize_collection(self, value: Collection) -> str:
         items = ', '.join(self.serialize_value(item) for item in value)

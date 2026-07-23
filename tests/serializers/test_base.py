@@ -38,6 +38,23 @@ class TestBaseSerializer(TestCase):
         # Act & Assert
         self.assertEqual(serializer.serialize_value(value), f"'{value}'")
 
+    @parameterized.expand(
+        (
+            ("UMIDIGI Romance's Umi", "'UMIDIGI Romance''s Umi'"),
+            ('C:\\path', "'C:\\path'"),
+            ("a\\'b", "'a\\''b'"),
+            ('line1\nline2\tend', "'line1\nline2\tend'"),
+            ('', "''"),
+        )
+    )
+    def test_serialize_string_escaping(self, value, result):
+        # Act & Assert
+        self.assertEqual(serializer.serialize_value(value), result)
+
+    def test_serialize_collection_with_quoted_strings(self):
+        # Act & Assert
+        self.assertEqual(serializer.serialize_value(["O'Brien", 'plain']), "('O''Brien', 'plain')")
+
     def test_serialize_uuid(self):
         # Arrange
         value = '123e4567-e89b-12d3-a456-426614174000'

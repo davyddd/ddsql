@@ -36,6 +36,20 @@ or create your own by inheriting from `BaseSerializer`.
 | `date`               | `'2025-01-01'`           | `'2025-01-01'::date`                | `toDate('2025-01-01')`                            |
 | `list`/`tuple`/`set` | `(item1, item2, ...)`    | `(item1, item2, ...)`               | `(item1, item2, ...)`                             |
 
+String values are escaped according to the dialect rules, so quotes, backslashes 
+and control characters cannot break the query:
+
+- `BaseSerializer` doubles single quotes (`O'Brien` → `'O''Brien'`), as defined by the SQL standard.
+- `ClickhouseSerializer` escapes backslashes, single quotes and all control characters 
+  with backslash sequences (`O'Brien` → `'O\'Brien'`, newline → `\n`, other control characters → `\xHH`).
+- `PostgresSerializer` doubles single quotes; strings containing backslashes or control 
+  characters are emitted using the escape string syntax (`C:\dir` → `E'C:\\dir'`), which is 
+  interpreted the same way regardless of the `standard_conforming_strings` server setting. 
+  A NUL (`0x00`) character raises `ValueError`, since PostgreSQL cannot store it in text values.
+
+The serialized literal is always a single printable line. 
+To customize escaping in your own serializer, override the `escape_string` method.
+
 If you need to serialize a type not listed in the table, override the `serialize_other_object` method in your serializer:
 
 ```python
