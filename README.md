@@ -24,17 +24,17 @@ or create your own by inheriting from `BaseSerializer`.
 
 **Serialization Table**
 
-| Python Type          | Base                     | PostgreSQL                          | ClickHouse                                        |
-|----------------------|--------------------------|-------------------------------------|---------------------------------------------------|
-| `None`               | `NULL`                   | `NULL`                              | `NULL`                                            |
-| `bool`               | `true`/`false`           | `true`/`false`                      | `true`/`false`                                    |
-| `int`                | `123`                    | `123`                               | `123`                                             |
-| `float`/`Decimal`    | `45.67`                  | `45.67`                             | `45.67`                                           |
-| `str`                | `'value'`                | `'value'`                           | `'value'`                                         |
-| `UUID`               | `'550e8400-...'`         | `'550e8400-...'::uuid`              | `toUUID('550e8400-...')`                          |
-| `datetime`           | `'2025-01-01T12:00:00'`  | `'2025-01-01T12:00:00'::timestamp`  | `parseDateTimeBestEffort('2025-01-01T12:00:00')`  |
-| `date`               | `'2025-01-01'`           | `'2025-01-01'::date`                | `toDate('2025-01-01')`                            |
-| `list`/`tuple`/`set` | `(item1, item2, ...)`    | `(item1, item2, ...)`               | `(item1, item2, ...)`                             |
+| Python Type          | Base                    | PostgreSQL                         | ClickHouse                                            |
+|----------------------|-------------------------|------------------------------------|-------------------------------------------------------|
+| `None`               | `NULL`                  | `NULL`                             | `NULL`                                                |
+| `bool`               | `true`/`false`          | `true`/`false`                     | `true`/`false`                                        |
+| `int`                | `123`                   | `123`                              | `123`                                                 |
+| `float`/`Decimal`    | `45.67`                 | `45.67`                            | `45.67`                                               |
+| `str`                | `'value'`               | `'value'`                          | `'value'`                                             |
+| `UUID`               | `'550e8400-...'`        | `'550e8400-...'::uuid`             | `toUUID('550e8400-...')`                              |
+| `datetime`           | `'2025-01-01T12:00:00'` | `'2025-01-01T12:00:00'::timestamp` | `parseDateTime64BestEffort('2025-01-01T12:00:00', 6)` |
+| `date`               | `'2025-01-01'`          | `'2025-01-01'::date`               | `toDate('2025-01-01')`                                |
+| `list`/`tuple`/`set` | `(item1, item2, ...)`   | `(item1, item2, ...)`              | `(item1, item2, ...)`                                 |
 
 String values are escaped according to the dialect rules, so quotes, backslashes 
 and control characters cannot break the query:
@@ -48,6 +48,16 @@ and control characters cannot break the query:
   A NUL (`0x00`) character raises `ValueError`, since PostgreSQL cannot store it in text values.
 
 The serialized literal is always a single printable line. 
+
+`datetime` values keep their microseconds and UTC offset:
+
+- `ClickhouseSerializer` renders `parseDateTime64BestEffort('...', 6)`, which yields a `DateTime64(6)` 
+  literal; a timezone-aware value is converted according to its offset, a naive value is interpreted 
+  in the server time zone. Inserting such a literal into a `DateTime` column silently truncates it 
+  to seconds, and comparisons with `DateTime` columns work as expected.
+- `PostgresSerializer` renders a timezone-aware value as `'...+03:00'::timestamptz`, so its offset 
+  is honoured; a naive value is rendered as `'...'::timestamp`, as before.
+
 To customize escaping in your own serializer, override the `escape_string` method.
 
 If you need to serialize a type not listed in the table, override the `serialize_other_object` method in your serializer:

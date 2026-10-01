@@ -52,7 +52,10 @@ class PostgresSerializer(BaseSerializer):
 
     @classmethod
     def serialize_datetime(cls, value: datetime) -> str:
-        return f"'{cls.escape_string(value.isoformat())}'::timestamp"
+        # `timestamp` ignores the UTC offset of the literal, so a timezone-aware value
+        # is rendered as `timestamptz` to keep its offset; naive values are left as-is
+        cast = 'timestamptz' if value.tzinfo is not None else 'timestamp'
+        return f"'{cls.escape_string(value.isoformat())}'::{cast}"
 
     @classmethod
     def serialize_date(cls, value: date) -> str:

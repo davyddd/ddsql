@@ -47,12 +47,17 @@ class TestClickhouseSerializer(TestCase):
         # Act & Assert
         self.assertEqual(serializer.serialize_value(UUID(value)), f"toUUID('{value}')")
 
-    def test_serialize_datetime(self):
-        # Arrange
-        value = '2024-01-15T14:30:45'
-
+    @parameterized.expand(
+        (
+            ('2024-01-15T14:30:45',),
+            ('2026-10-01T12:54:03.352581',),
+            ('2026-10-01T12:54:03.352581+00:00',),
+            ('2026-10-01T15:54:03.352581+03:00',),
+        )
+    )
+    def test_serialize_datetime(self, value):
         # Act & Assert
-        self.assertEqual(serializer.serialize_value(datetime.fromisoformat(value)), f"parseDateTimeBestEffort('{value}')")
+        self.assertEqual(serializer.serialize_value(datetime.fromisoformat(value)), f"parseDateTime64BestEffort('{value}', 6)")
 
     def test_serialize_date(self):
         # Arrange

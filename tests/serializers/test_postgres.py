@@ -52,12 +52,17 @@ class TestPostgresSerializer(TestCase):
         # Act & Assert
         self.assertEqual(serializer.serialize_value(UUID(value)), f"'{value}'::uuid")
 
-    def test_serialize_datetime(self):
-        # Arrange
-        value = '2024-01-15T14:30:45'
-
+    @parameterized.expand(
+        (
+            ('2024-01-15T14:30:45', 'timestamp'),
+            ('2026-10-01T12:54:03.352581', 'timestamp'),
+            ('2026-10-01T12:54:03.352581+00:00', 'timestamptz'),
+            ('2026-10-01T15:54:03.352581+03:00', 'timestamptz'),
+        )
+    )
+    def test_serialize_datetime(self, value, cast):
         # Act & Assert
-        self.assertEqual(serializer.serialize_value(datetime.fromisoformat(value)), f"'{value}'::timestamp")
+        self.assertEqual(serializer.serialize_value(datetime.fromisoformat(value)), f"'{value}'::{cast}")
 
     def test_serialize_date(self):
         # Arrange

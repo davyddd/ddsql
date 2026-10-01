@@ -40,7 +40,9 @@ class ClickhouseSerializer(BaseSerializer):
 
     @classmethod
     def serialize_datetime(cls, value: datetime) -> str:
-        return f"parseDateTimeBestEffort('{cls.escape_string(value.isoformat())}')"
+        # parseDateTimeBestEffort returns DateTime (second precision) and silently drops
+        # microseconds; the DateTime64 variant keeps them and honours the UTC offset
+        return f"parseDateTime64BestEffort('{cls.escape_string(value.isoformat())}', 6)"
 
     @classmethod
     def serialize_date(cls, value: date) -> str:
