@@ -3,10 +3,9 @@ from __future__ import annotations
 from abc import ABC
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from ddutils.annotation_helpers import is_subclass
 from ddutils.class_helpers import classproperty
 
-from ddsql.adapter import Adapter
+from ddsql.adapter import AdapterDescriptor
 
 if TYPE_CHECKING:
     from ddsql.query import Query
@@ -31,20 +30,15 @@ class SQLBase(ABC):
     query: Query
     params: dict[str, Any]
 
-    @classmethod
     def __init_subclass__(cls, **kwargs):
         if not cls.has_adapters:
             raise NotImplementedError('Subclasses must define at least one adapter')
 
     @classproperty
-    def has_adapters(cls) -> bool:
-        for field in cls.__annotations__:
-            adapter = getattr(cls, field, None)
-            adapter_class = getattr(adapter, '__class__', None)
-            if adapter_class and is_subclass(adapter_class, Adapter):
-                return True
-
-        return False
+    def has_adapters(cls: type[SQLBase]) -> bool:
+        # Descriptors are looked up in the class dictionaries along the MRO, so inherited adapters count
+        # and no adapter gets instantiated just for the check
+        return any(isinstance(value, AdapterDescriptor) for klass in cls.__mro__ for value in vars(klass).values())
 
     def __init__(self, query: Query) -> None:
         self.query = query

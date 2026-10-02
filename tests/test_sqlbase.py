@@ -1,7 +1,9 @@
 from unittest import TestCase
 
+from ddsql.adapter import AdapterDescriptor
 from ddsql.query import Query
-from tests.data.mock_sql import MockSQL
+from ddsql.sqlbase import SQLBase
+from tests.data.mock_sql import MockAdapter, MockSQL
 from tests.data.models import User
 
 query = Query(model=User, text='SELECT * FROM users WHERE user_id = {{ user_id }}')
@@ -38,3 +40,25 @@ class TestSQLBase(TestCase):
 
         # Assert
         self.assertEqual(self.sql.params, {'user_id': 1, 'name': 'John', 'email': 'john@example.com'})
+
+    def test_adapter_descriptor_access(self):
+        # Act & Assert
+        self.assertIsInstance(MockSQL.mock_adapter, AdapterDescriptor)
+        self.assertIsInstance(self.sql.mock_adapter, MockAdapter)
+        self.assertIs(self.sql.mock_adapter.sql, self.sql)
+
+    def test_subclass_inherits_adapters(self):
+        # Act
+        class InheritedSQL(MockSQL):
+            pass
+
+        # Assert
+        self.assertTrue(InheritedSQL.has_adapters)
+        self.assertIsInstance(InheritedSQL(query=query).mock_adapter, MockAdapter)
+
+    def test_subclass_without_adapters(self):
+        # Act & Assert
+        with self.assertRaises(NotImplementedError):
+
+            class NoAdaptersSQL(SQLBase):
+                pass
