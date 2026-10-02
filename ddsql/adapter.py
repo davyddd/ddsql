@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, overload
 
 from ddutils.annotation_helpers import is_subclass
 
@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 class Adapter(ABC):
     serializer: BaseSerializer
 
-    @classmethod
     def __init_subclass__(cls, **kwargs):
         serializer = getattr(cls, 'serializer', None)
         serializer_class = getattr(serializer, '__class__', None)
@@ -50,7 +49,16 @@ class AdapterDescriptor(Generic[AdapterT]):
     def __init__(self, adapter_class: type[AdapterT]):
         self.adapter_class = adapter_class
 
-    def __get__(self, sql: SQLBase, sql_class: type[SQLBase] | None = None) -> AdapterT:
+    @overload
+    def __get__(self, sql: None, sql_class: type[SQLBase]) -> AdapterDescriptor[AdapterT]: ...
+
+    @overload
+    def __get__(self, sql: SQLBase, sql_class: type[SQLBase] | None = None) -> AdapterT: ...
+
+    def __get__(self, sql: SQLBase | None, sql_class: type[SQLBase] | None = None) -> AdapterT | AdapterDescriptor[AdapterT]:
+        # accessed on the class, like `SQL.postgres`: return the descriptor itself, as `property` does
+        if sql is None:
+            return self
         return self.adapter_class(sql)
 
 

@@ -1,12 +1,8 @@
-import os
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, Generic, TypeVar
 
 from jinja2 import Environment, FileSystemLoader, Template
-
-SQL_TEMPLATES_DIR = os.getenv('SQL_TEMPLATES_DIR')
-
 
 DataT = TypeVar('DataT')
 
@@ -32,25 +28,24 @@ class Query(Generic[DataT]):
     model: type[DataT]
     template: Template
 
-    def __init__(self, model: type[DataT], text: str | None = None, path: str | None = None):
+    def __init__(self, model: type[DataT], text: str | None = None, path: Path | None = None):
         self.model = model
 
         self.template = self.get_template(text, path)
 
     @staticmethod
-    def get_template(text: str | None = None, path: str | None = None) -> Template:
+    def get_template(text: str | None = None, path: Path | None = None) -> Template:
         if text:
-            file_system_loader = FileSystemLoader(Path('.'))
+            file_system_loader = None
             method = 'from_string'
             query = text
         elif path:
-            if SQL_TEMPLATES_DIR is None:
-                raise ValueError(
-                    'SQL Templates dir is not defined. Make sure the SQL_TEMPLATES_DIR environment variable is set correctly.'
-                )
-            file_system_loader = FileSystemLoader(Path(SQL_TEMPLATES_DIR))
+            if not path.is_file():
+                raise FileNotFoundError(f'SQL template not found: {path.resolve()}')
+            # the loader is rooted at the template directory, so `{% include %}` resolves relative to the file
+            file_system_loader = FileSystemLoader(path.parent)
             method = 'get_template'
-            query = path
+            query = path.name
         else:
             raise ValueError('One of `text` or `path` must be specified')
 

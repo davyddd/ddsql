@@ -1,5 +1,4 @@
 from unittest import IsolatedAsyncioTestCase
-from unittest.mock import patch
 
 from ddsql.query import Query, Result
 from tests.data.constants import TESTS_TEMPLATES_DIR
@@ -16,10 +15,10 @@ class TestQuery(IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):
             Query(model=User)
 
-    def test_initialization_without_env_var(self):
+    def test_initialization_with_missing_file(self):
         # Act & Assert
-        with self.assertRaises(ValueError):
-            Query(model=User, path='user.sql')
+        with self.assertRaises(FileNotFoundError):
+            Query(model=User, path=TESTS_TEMPLATES_DIR / 'missing.sql')
 
     async def test_render_template_from_text(self):
         # Arrange
@@ -31,10 +30,9 @@ class TestQuery(IsolatedAsyncioTestCase):
         # Assert
         self.assertEqual(result, """SELECT * FROM users WHERE user_id = 1;""")
 
-    @patch('ddsql.query.SQL_TEMPLATES_DIR', TESTS_TEMPLATES_DIR)
     async def test_render_template_from_path(self):
         # Arrange
-        query = Query(model=User, path='user.sql')
+        query = Query(model=User, path=TESTS_TEMPLATES_DIR / 'user.sql')
 
         # Act
         result = await query.render_template(params={'user_id': 1})

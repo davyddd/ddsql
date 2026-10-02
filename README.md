@@ -170,7 +170,7 @@ which wraps raw database rows into the specified model (called internally by `Ad
 
 Required parameters:
 - **model** – a declarative class (e.g., dataclass) describing the output result structure;
-- **text** or **path** – the SQL template source.
+- **text** or **path** – the SQL template source (inline string or path to a file).
 
 ### Inline Template (text)
 
@@ -186,24 +186,23 @@ query = Query(
 
 ### File Template (path)
 
-For file-based templates, set the `SQL_TEMPLATES_DIR` environment variable to the directory containing your SQL files:
-
-```bash
-export SQL_TEMPLATES_DIR=/app/src/templates/sql/
-```
-
-Then use a relative path:
+Pass the path to the SQL file as `Path`. The file is checked at construction time, so a wrong path fails
+on import rather than on the first query:
 
 ```python
+from pathlib import Path
+
 from ddsql.query import Query
 
+SQL_TEMPLATES_DIR = Path(__file__).parent / 'templates' / 'sql'
 
-# Loads template from /app/src/templates/sql/users/get_by_id.sql
 query = Query(
-    model=User, 
-    path='users/get_by_id.sql'
+    model=User,
+    path=SQL_TEMPLATES_DIR / 'users' / 'get_by_id.sql',
 )
 ```
+
+`{% include %}` and `{% import %}` inside the template resolve relative to the template's directory.
 
 ### Result
 
