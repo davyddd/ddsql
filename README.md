@@ -16,6 +16,21 @@ Install the library using pip:
 pip install ddsql
 ```
 
+## Development
+
+The project runs entirely in Docker. Requires Docker and [Fabric](https://www.fabfile.org/) on the host:
+
+```bash
+fab build      # build the dev image
+fab tests      # run pytest
+fab linters    # run ruff (with --fix), ty and complexipy
+fab shell      # IPython inside the container
+fab bash       # bash inside the container
+```
+
+This project was generated from [dd-lib-stub](https://github.com/davyddd/dd-lib-stub);
+run `copier update` to pull in template updates.
+
 ## Serializer
 
 The serializer converts Python types to their SQL representations. 

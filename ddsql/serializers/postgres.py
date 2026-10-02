@@ -1,6 +1,5 @@
 import re
 from datetime import date, datetime
-from typing import Dict
 from uuid import UUID
 
 from ddsql.serializers import BaseSerializer
@@ -11,7 +10,7 @@ from ddsql.serializers import BaseSerializer
 _ESCAPE_SYNTAX_REQUIRED = re.compile(r'[\\\x00-\x1F\x7F]')
 
 
-def _build_escape_translation() -> Dict[int, str]:
+def _build_escape_translation() -> dict[int, str]:
     # https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS-ESCAPE
     translation = {
         ord('\\'): '\\\\',

@@ -1,13 +1,13 @@
 from collections.abc import Callable, Collection, Mapping
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Dict, Union
+from typing import Any
 from uuid import UUID
 
 
 class BaseSerializer:
     @property
-    def template_functions(self) -> Dict[str, Callable[[Any], str]]:
+    def template_functions(self) -> dict[str, Callable[[Any], str]]:
         return {'serialize_value': self.serialize_value}
 
     def serialize_value(self, value: Any) -> str:
@@ -41,7 +41,7 @@ class BaseSerializer:
         return f'{value}'.lower()
 
     @staticmethod
-    def serialize_number(value: Union[int, float, Decimal]) -> str:
+    def serialize_number(value: int | float | Decimal) -> str:
         return f'{value}'
 
     @staticmethod

@@ -1,29 +1,7 @@
-version: "3.8"
-
 services:
     ddsql:
         build:
             context: ./
             dockerfile: ./Dockerfile
-            args:
-                PYTHONBREAKPOINT: import ipdb;ipdb.set_trace
         volumes:
             - .:/src
-    
-    postgres:
-        image: postgres:16.2-alpine
-        ports:
-            - 5432:5432
-        environment:
-            POSTGRES_DB: postgres_db
-            POSTGRES_USER: postgres_user
-            POSTGRES_PASSWORD: postgres_password
-
-    clickhouse:
-        image: clickhouse/clickhouse-server:25.3-alpine
-        ports:
-            - 8123:8123
-        environment:
-            CLICKHOUSE_DB: clickhouse_db
-            CLICKHOUSE_USER: clickhouse_user
-            CLICKHOUSE_PASSWORD: clickhouse_password
