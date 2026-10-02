@@ -1,11 +1,10 @@
 from datetime import date, datetime
-from typing import Dict
 from uuid import UUID
 
 from ddsql.serializers import BaseSerializer
 
 
-def _build_escape_translation() -> Dict[int, str]:
+def _build_escape_translation() -> dict[int, str]:
     # https://clickhouse.com/docs/en/sql-reference/syntax#string
     translation = {
         ord('\\'): '\\\\',

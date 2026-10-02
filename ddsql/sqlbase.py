@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC
-from typing import TYPE_CHECKING, Any, Dict, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from ddutils.annotation_helpers import is_subclass
 from ddutils.class_helpers import classproperty
@@ -29,7 +29,7 @@ class SQLBase(ABC):
     """
 
     query: Query
-    params: Dict[str, Any]
+    params: dict[str, Any]
 
     @classmethod
     def __init_subclass__(cls, **kwargs):

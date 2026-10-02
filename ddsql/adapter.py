@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Dict, Generic, Optional, Sequence, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 from ddutils.annotation_helpers import is_subclass
 
 from ddsql.serializers import BaseSerializer
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from ddsql.query import Result
     from ddsql.sqlbase import SQLBase
 
@@ -36,20 +38,19 @@ class Adapter(ABC):
         return self.sql.query.build_result(await self._execute())
 
     @abstractmethod
-    async def _execute(self) -> Sequence[Dict[str, Any]]:  # noqa: UP006
-        ...
+    async def _execute(self) -> Sequence[dict[str, Any]]: ...
 
 
 AdapterT = TypeVar('AdapterT', bound=Adapter)
 
 
 class AdapterDescriptor(Generic[AdapterT]):
-    adapter_class: Type[AdapterT]  # noqa: UP006
+    adapter_class: type[AdapterT]
 
-    def __init__(self, adapter_class: Type[AdapterT]):  # noqa: UP006
+    def __init__(self, adapter_class: type[AdapterT]):
         self.adapter_class = adapter_class
 
-    def __get__(self, sql: SQLBase, sql_class: Optional[Type[SQLBase]] = None) -> AdapterT:  # noqa: UP006, UP007
+    def __get__(self, sql: SQLBase, sql_class: type[SQLBase] | None = None) -> AdapterT:
         return self.adapter_class(sql)
 
 

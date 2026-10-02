@@ -1,0 +1,10 @@
+# Changes here will be overwritten by Copier; do NOT edit manually.
+_commit: v0.0.6
+_src_path: gh:davyddd/dd-lib-stub
+copyright_year: 2025
+max_python_version: '3.14'
+min_python_version: '3.11'
+package_description: SQL Query Library
+package_keywords: python, ddsql
+package_name: ddsql
+test_matrix: '{}'

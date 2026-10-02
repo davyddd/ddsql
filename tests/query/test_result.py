@@ -30,7 +30,7 @@ class TestResult(TestCase):
         users = result.get_list()
 
         # Assert
-        self.assertIsNotNone(user)
+        assert user is not None
         self.assertEqual(user.user_id, 1)
         self.assertEqual(user.name, 'John')
         self.assertEqual(user.email, 'john@example.com')

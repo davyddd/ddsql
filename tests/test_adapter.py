@@ -29,6 +29,7 @@ class TestAdapter(IsolatedAsyncioTestCase):
         # Assert
         self.assertEqual(len(result.rows), 1)
         self.assertEqual(len(users), 1)
+        assert user is not None
         self.assertEqual(user.user_id, 1)
         self.assertEqual(user.name, 'Test User')
         self.assertIsNone(user.email)
