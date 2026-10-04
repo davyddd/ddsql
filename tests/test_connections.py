@@ -66,7 +66,7 @@ class TestConnectionManagerFactory(IsolatedAsyncioTestCase):
         # Act
         async with connect() as primary:
             pass
-        async with connect(using='replica') as replica:
+        async with connect(alias='replica') as replica:
             pass
 
         # Assert

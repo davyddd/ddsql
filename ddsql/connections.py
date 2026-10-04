@@ -41,7 +41,7 @@ class ConnectionManagerFactory(Generic[ConnectionAliasT, ConnectionT, Connection
         atomic = ConnectionManagerFactory(session_registries, default=PostgresDB.PRIMARY, connection_manager_class=Atomic)
 
         async with clickhouse() as client: ...
-        async with atomic(using=PostgresDB.REPLICA) as session: ...
+        async with atomic(alias=PostgresDB.REPLICA) as session: ...
     """
 
     def __init__(
@@ -56,15 +56,15 @@ class ConnectionManagerFactory(Generic[ConnectionAliasT, ConnectionT, Connection
         self.default = default
         self.connection_manager_class = connection_manager_class
 
-    def registry(self, using: Hashable | None = None) -> ScopedRegistry[ConnectionT]:
-        """The registry of `using`, or of the default connection; `Hashable` because `Adapter.db` is untyped."""
-        alias = self.default if using is None else using
+    def registry(self, alias: Hashable | None = None) -> ScopedRegistry[ConnectionT]:
+        """The registry of `alias`, or of the default connection; `Hashable` because `Adapter.alias` is untyped."""
+        alias = self.default if alias is None else alias
         if alias not in self.registries:
             raise KeyError(f'Unknown connection {alias!r}; expected one of {list(self.registries)!r}')
         return self.registries[alias]  # type: ignore[index]
 
-    def __call__(self, using: Hashable | None = None) -> ConnectionManagerT:
-        return self.connection_manager_class(self.registry(using))
+    def __call__(self, alias: Hashable | None = None) -> ConnectionManagerT:
+        return self.connection_manager_class(self.registry(alias))
 
 
 __all__ = ('ConnectionManager', 'ConnectionManagerFactory')

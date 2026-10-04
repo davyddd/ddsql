@@ -42,13 +42,13 @@ class TestAdapter(IsolatedAsyncioTestCase):
     async def test_using(self):
         # Arrange
         class Executions:
-            dbs: list[Hashable | None] = []
+            aliases: list[Hashable | None] = []
 
         class RoutingAdapter(Adapter):
             serializer = BaseSerializer()
 
             async def _execute(self) -> Sequence[dict[str, Any]]:
-                Executions.dbs.append(self.db)
+                Executions.aliases.append(self.alias)
                 return [{'user_id': 1, 'name': 'Test User', 'email': None}]
 
         class RoutingSQL(SQLBase):
@@ -62,8 +62,8 @@ class TestAdapter(IsolatedAsyncioTestCase):
         await sql.adapter.execute()
 
         # Assert: the database is chosen per call, a fresh adapter is bound on every attribute access
-        self.assertEqual(Executions.dbs, [None, 'replica', None])
-        self.assertIsNone(sql.adapter.db)
+        self.assertEqual(Executions.aliases, [None, 'replica', None])
+        self.assertIsNone(sql.adapter.alias)
 
     def test_abstract_adapter_needs_no_serializer(self):
         # Act & Assert: only concrete adapters are validated
