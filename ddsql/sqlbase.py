@@ -31,6 +31,7 @@ class SQLBase(ABC):
     params: dict[str, Any]
 
     def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)  # keeps Generic / mixins in the MRO working
         if not cls.has_adapters:
             raise NotImplementedError('Subclasses must define at least one adapter')
 

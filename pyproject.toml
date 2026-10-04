@@ -1,7 +1,7 @@
 [project]
 name = "ddsql"
 description = "SQL Query Library"
-version = "0.1.0"
+version = "0.2.0"
 authors = [{ name = "davyddd" }]
 license = "MIT"
 license-files = ["LICENSE"]
