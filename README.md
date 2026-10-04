@@ -121,7 +121,7 @@ per task. The connections module adds two things on top:
 
 - `ConnectionManagerFactory(registries, default, connection_manager_class=ConnectionManager)` resolves a
   connection alias to its registry, like Django's `using`. Calling it opens a connection manager on the
-  chosen registry; `registry(using)` returns the registry itself.
+  chosen registry; `registry(alias)` returns the registry itself.
 - `ConnectionManager(registry)` is the default connection manager: an async context manager that hands out
   the connection of the registry's current scope and releases nothing on exit. Enough for clients that are
   pools themselves, such as ClickHouse.
@@ -157,7 +157,7 @@ async with clickhouse() as client:
 atomic = ConnectionManagerFactory(session_registries, default=PostgresDB.PRIMARY, connection_manager_class=Atomic)
 
 
-async with atomic(using=PostgresDB.REPLICA) as session:
+async with atomic(alias=PostgresDB.REPLICA) as session:
     ...
 ```
 
@@ -182,7 +182,7 @@ class PostgresAdapter(Adapter):
     serializer = PostgresSerializer()
 
     async def _execute(self) -> Sequence[dict[str, Any]]:
-        async with atomic(using=self.db) as session:
+        async with atomic(alias=self.alias) as session:
             query = await self.get_query()  # the rendered SQL query
             result = await session.execute(text(query))
             return [dict(zip(result.keys(), row)) for row in result.fetchall()]
@@ -193,8 +193,8 @@ adapters are validated.
 
 ### Choosing the database
 
-`Adapter.using(db)` picks the database right before executing, like Django's `using`. `_execute` reads
-`self.db` (`None` means the default) and passes it to whatever opens the connection, as in the example above:
+`Adapter.using(alias)` picks the connection alias right before executing, like Django's `using`. `_execute`
+reads `self.alias` (`None` means the default) and passes it to whatever opens the connection, as in the example above:
 
 ```python
 await SQL(query).postgres.execute()                               # default connection

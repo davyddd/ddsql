@@ -31,17 +31,17 @@ class Adapter(ABC):
 
     def __init__(self, sql: SQLBase) -> None:
         self.sql = sql
-        self.db: Hashable | None = None
+        self.alias: Hashable | None = None
 
-    def using(self, db: Hashable) -> Self:
+    def using(self, alias: Hashable) -> Self:
         """
-        Picks the database for this execution, like Django's `using`; `_execute` reads `self.db`
+        Picks the connection alias for this execution, like Django's `using`; `_execute` reads `self.alias`
         (`None` = default) and passes it to whatever opens the connection:
 
             await SQL(query).postgres.execute()                               # default connection
             await SQL(query).postgres.using(PostgresDB.REPLICA).execute()
         """
-        self.db = db
+        self.alias = alias
         return self
 
     async def get_query(self) -> str:
