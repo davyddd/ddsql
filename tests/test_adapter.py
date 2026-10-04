@@ -1,6 +1,11 @@
+from collections.abc import Hashable, Sequence
+from typing import Any
 from unittest import IsolatedAsyncioTestCase
 
+from ddsql.adapter import Adapter, AdapterDescriptor
 from ddsql.query import Query
+from ddsql.serializers import BaseSerializer
+from ddsql.sqlbase import SQLBase
 from tests.data.mock_sql import MockSQL
 from tests.data.models import User
 
@@ -33,3 +38,40 @@ class TestAdapter(IsolatedAsyncioTestCase):
         self.assertEqual(user.user_id, 1)
         self.assertEqual(user.name, 'Test User')
         self.assertIsNone(user.email)
+
+    async def test_using(self):
+        # Arrange
+        class Executions:
+            dbs: list[Hashable | None] = []
+
+        class RoutingAdapter(Adapter):
+            serializer = BaseSerializer()
+
+            async def _execute(self) -> Sequence[dict[str, Any]]:
+                Executions.dbs.append(self.db)
+                return [{'user_id': 1, 'name': 'Test User', 'email': None}]
+
+        class RoutingSQL(SQLBase):
+            adapter: RoutingAdapter = AdapterDescriptor(RoutingAdapter)  # type: ignore
+
+        sql = RoutingSQL(query=query)
+
+        # Act
+        await sql.adapter.execute()
+        await sql.adapter.using('replica').execute()
+        await sql.adapter.execute()
+
+        # Assert: the database is chosen per call, a fresh adapter is bound on every attribute access
+        self.assertEqual(Executions.dbs, [None, 'replica', None])
+        self.assertIsNone(sql.adapter.db)
+
+    def test_abstract_adapter_needs_no_serializer(self):
+        # Act & Assert: only concrete adapters are validated
+        class AbstractAdapter(Adapter):
+            pass
+
+        with self.assertRaises(NotImplementedError):
+
+            class ConcreteAdapterWithoutSerializer(AbstractAdapter):
+                async def _execute(self) -> Sequence[dict[str, Any]]:
+                    return []

@@ -113,14 +113,67 @@ class CustomSerializer(BaseSerializer):
         }
 ```
 
+## Connections
+
+`ddsql.connections` sits between a `ScopedRegistry` (from [ddutils](https://github.com/davyddd/ddutils)) and
+the code that runs queries. A registry holds one connection per scope: a pooled client per process, a session
+per task. The connections module adds two things on top:
+
+- `ConnectionManagerFactory(registries, default, connection_manager_class=ConnectionManager)` resolves a
+  connection alias to its registry, like Django's `using`. Calling it opens a connection manager on the
+  chosen registry; `registry(using)` returns the registry itself.
+- `ConnectionManager(registry)` is the default connection manager: an async context manager that hands out
+  the connection of the registry's current scope and releases nothing on exit. Enough for clients that are
+  pools themselves, such as ClickHouse.
+
+Databases with transactions pass their own `connection_manager_class`: a unit of work that begins, commits
+or rolls back and closes the session on exit. It depends on the driver, so it lives in the project.
+
+```python
+import os
+from enum import Enum
+
+from ddutils.scoped_registry import ScopedRegistry
+
+from ddsql.connections import ConnectionManagerFactory
+
+
+class ClickhouseDB(str, Enum):
+    PRIMARY = 'primary'
+
+
+client_registries = {
+    db: ScopedRegistry(create_func=make_client_for(db), scope_func=os.getpid, destructor_method_name='close')
+    for db in ClickhouseDB
+}
+clickhouse = ConnectionManagerFactory(client_registries, default=ClickhouseDB.PRIMARY)
+
+
+async with clickhouse() as client:
+    result = await client.query(sql)
+
+
+# a transactional database: `Atomic` is your unit of work over `registry.scope()`
+atomic = ConnectionManagerFactory(session_registries, default=PostgresDB.PRIMARY, connection_manager_class=Atomic)
+
+
+async with atomic(using=PostgresDB.REPLICA) as session:
+    ...
+```
+
 ## Adapter
 
-`Adapter` encapsulates database interactions. To create an adapter, inherit from the `Adapter` base class 
+`Adapter` encapsulates database interactions. To create an adapter, inherit from the `Adapter` base class
 and define two required elements:
 - **serializer** – an instance of a serializer for converting Python types to SQL representations;
 - **_execute** method – the database-specific query execution logic.
 
 ```python
+from collections.abc import Sequence
+from typing import Any
+
+from sqlalchemy import text
+
 from ddsql.adapter import Adapter
 from ddsql.serializers import PostgresSerializer
 
@@ -128,11 +181,24 @@ from ddsql.serializers import PostgresSerializer
 class PostgresAdapter(Adapter):
     serializer = PostgresSerializer()
 
-    async def _execute(self) -> Sequence[Dict[str, Any]]:
-        query = await self.get_query()  # get the rendered SQL query
-        async with Atomic() as postgres_session:
-            result = await postgres_session.execute(text(query))
+    async def _execute(self) -> Sequence[dict[str, Any]]:
+        async with atomic(using=self.db) as session:
+            query = await self.get_query()  # the rendered SQL query
+            result = await session.execute(text(query))
             return [dict(zip(result.keys(), row)) for row in result.fetchall()]
+```
+
+Intermediate adapter classes without `_execute` are abstract and need no `serializer`; only concrete
+adapters are validated.
+
+### Choosing the database
+
+`Adapter.using(db)` picks the database right before executing, like Django's `using`. `_execute` reads
+`self.db` (`None` means the default) and passes it to whatever opens the connection, as in the example above:
+
+```python
+await SQL(query).postgres.execute()                               # default connection
+await SQL(query).postgres.using(PostgresDB.REPLICA).execute()
 ```
 
 ## SQLBase
@@ -216,12 +282,11 @@ The result of query execution is a `Result` object that wraps the data into the 
 ```python
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
-from ddsql.query import Query
-from ddsql.sqlbase import SQLBase
 from ddsql.adapter import Adapter, AdapterDescriptor
+from ddsql.query import Query
 from ddsql.serializers import PostgresSerializer
+from ddsql.sqlbase import SQLBase
 
 
 class PostgresAdapter(Adapter):
@@ -239,7 +304,7 @@ class SQL(SQLBase):
 class User:
     user_id: int
     name: str
-    email: Optional[str]
+    email: str | None
     created_at: datetime
     is_deleted: bool
 

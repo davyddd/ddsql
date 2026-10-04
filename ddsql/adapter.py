@@ -1,14 +1,15 @@
 from __future__ import annotations
 
+import inspect
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, overload
+from typing import TYPE_CHECKING, Any, Generic, Self, TypeVar, overload
 
 from ddutils.annotation_helpers import is_subclass
 
 from ddsql.serializers import BaseSerializer
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Hashable, Sequence
 
     from ddsql.query import Result
     from ddsql.sqlbase import SQLBase
@@ -18,6 +19,9 @@ class Adapter(ABC):
     serializer: BaseSerializer
 
     def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)  # keeps Generic / mixins in the MRO working
+        if inspect.isabstract(cls):  # intermediate base classes declare no serializer
+            return
         serializer = getattr(cls, 'serializer', None)
         serializer_class = getattr(serializer, '__class__', None)
         if not is_subclass(serializer_class, BaseSerializer):
@@ -27,6 +31,18 @@ class Adapter(ABC):
 
     def __init__(self, sql: SQLBase) -> None:
         self.sql = sql
+        self.db: Hashable | None = None
+
+    def using(self, db: Hashable) -> Self:
+        """
+        Picks the database for this execution, like Django's `using`; `_execute` reads `self.db`
+        (`None` = default) and passes it to whatever opens the connection:
+
+            await SQL(query).postgres.execute()                               # default connection
+            await SQL(query).postgres.using(PostgresDB.REPLICA).execute()
+        """
+        self.db = db
+        return self
 
     async def get_query(self) -> str:
         return await self.sql.query.render_template(
