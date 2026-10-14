@@ -120,51 +120,10 @@ class CustomSerializer(BaseSerializer):
 
 ## Connections
 
-`ddsql.connections` sits between a `ScopedRegistry` (from [ddutils](https://github.com/davyddd/ddutils)) and
-the code that runs queries. A registry holds one connection per scope: a pooled client per process, a session
-per task. The connections module adds two things on top:
-
-- `ConnectionManagerFactory(registries, default, connection_manager_class=ConnectionManager)` resolves a
-  connection alias to its registry, like Django's `using`. Calling it opens a connection manager on the
-  chosen registry; `registry(alias)` returns the registry itself.
-- `ConnectionManager(registry)` is the default connection manager: an async context manager that hands out
-  the connection of the registry's current scope and releases nothing on exit. Enough for clients that are
-  pools themselves, such as ClickHouse.
-
-Databases with transactions pass their own `connection_manager_class`: a unit of work that begins, commits
-or rolls back and closes the session on exit. It depends on the driver, so it lives in the project.
-
-```python
-import os
-from enum import Enum
-
-from ddutils.scoped_registry import ScopedRegistry
-
-from ddsql.connections import ConnectionManagerFactory
-
-
-class ClickhouseDB(str, Enum):
-    PRIMARY = 'primary'
-
-
-client_registries = {
-    db: ScopedRegistry(create_func=make_client_for(db), scope_func=os.getpid, destructor_method_name='close')
-    for db in ClickhouseDB
-}
-clickhouse = ConnectionManagerFactory(client_registries, default=ClickhouseDB.PRIMARY)
-
-
-async with clickhouse() as client:
-    result = await client.query(sql)
-
-
-# a transactional database: `Atomic` is your unit of work over `registry.scope()`
-atomic = ConnectionManagerFactory(session_registries, default=PostgresDB.PRIMARY, connection_manager_class=Atomic)
-
-
-async with atomic(alias=PostgresDB.REPLICA) as session:
-    ...
-```
+Connection routing (`ConnectionManagerFactory`, `ConnectionManager`) lives in
+[ddutils](https://github.com/davyddd/ddutils#connections) since it is not specific to SQL: a `ScopedRegistry` per
+alias, a factory that opens a connection manager on the chosen registry, like Django's `using`. An adapter runs its
+query inside `factory(alias=self.alias)`; see "Choosing the database" below.
 
 ## Adapter
 
