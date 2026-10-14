@@ -4,6 +4,9 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
+from ddutils.annotation_helpers import NON_COMPLEX_SEQUENCE_TYPES
+from ddutils.value_helpers import unwrap_enum
+
 
 class BaseSerializer:
     @property
@@ -11,6 +14,9 @@ class BaseSerializer:
         return {'serialize_value': self.serialize_value}
 
     def serialize_value(self, value: Any) -> str:
+        # an `Enum` member is serialized by its value: `f'{Kind.A}'` of a `class Kind(int, Enum)` is 'Kind.A', not '1'
+        value = unwrap_enum(value)
+
         if value is None:
             return self.serialize_none(value)
         elif isinstance(value, bool):
@@ -27,7 +33,8 @@ class BaseSerializer:
             # the check for date must come after datetime,
             # because a datetime instance can also be identified as a date
             return self.serialize_date(value)
-        elif isinstance(value, Collection) and not isinstance(value, Mapping):
+        elif isinstance(value, Collection) and not isinstance(value, (Mapping, *NON_COMPLEX_SEQUENCE_TYPES)):
+            # `bytes` is a collection of ints, but has no SQL representation here
             return self.serialize_collection(value)
         else:
             return self.serialize_other_object(value)
