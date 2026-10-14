@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
+from enum import Enum, IntEnum
 from unittest import TestCase
 from uuid import UUID
 
@@ -13,6 +14,31 @@ serialized_collection = "(1, 'hello', NULL, false)"
 
 
 class CustomObject:
+    pass
+
+
+class Kind(str, Enum):  # noqa: UP042 - the mixin, not `enum.StrEnum`, is what is under test
+    ADMIN = 'admin'
+
+
+class IntMixinKind(int, Enum):
+    ONE = 1
+
+
+class Level(IntEnum):
+    LOW = 1
+
+
+class PlainKind(Enum):
+    AT = datetime(2024, 1, 15, 14, 30, 45)
+    ID = UUID('123e4567-e89b-12d3-a456-426614174000')
+
+
+class ProfileId(UUID):
+    pass
+
+
+class Slug(str):
     pass
 
 
@@ -90,8 +116,35 @@ class TestBaseSerializer(TestCase):
         # Assert & Assert
         self.assertEqual(serializer.serialize_value([]), '()')
 
-    @parameterized.expand((CustomObject, dict))
+    @parameterized.expand((CustomObject, dict, bytes, bytearray))
     def test_serialize_other_object(self, python_class):
         # Act & Assert
         with self.assertRaises(NotImplementedError):
             serializer.serialize_value(python_class())
+
+    @parameterized.expand(
+        (
+            (Kind.ADMIN, "'admin'"),
+            (IntMixinKind.ONE, '1'),
+            (Level.LOW, '1'),
+            (PlainKind.AT, "'2024-01-15T14:30:45'"),
+            (PlainKind.ID, "'123e4567-e89b-12d3-a456-426614174000'"),
+        )
+    )
+    def test_serialize_enum_member_by_its_value(self, value, result):
+        # `f'{IntMixinKind.ONE}'` is 'IntMixinKind.ONE'
+        self.assertEqual(serializer.serialize_value(value), result)
+
+    @parameterized.expand(
+        (
+            (Slug('admin'), "'admin'"),
+            (ProfileId('123e4567-e89b-12d3-a456-426614174000'), "'123e4567-e89b-12d3-a456-426614174000'"),
+        )
+    )
+    def test_serialize_subclass_as_its_base_type(self, value, result):
+        # Act & Assert
+        self.assertEqual(serializer.serialize_value(value), result)
+
+    def test_serialize_collection_of_enum_members(self):
+        # Act & Assert
+        self.assertEqual(serializer.serialize_value((Kind.ADMIN, Level.LOW)), "('admin', 1)")

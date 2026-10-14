@@ -51,6 +51,11 @@ or create your own by inheriting from `BaseSerializer`.
 | `date`               | `'2025-01-01'`          | `'2025-01-01'::date`               | `toDate('2025-01-01')`                                |
 | `list`/`tuple`/`set` | `(item1, item2, ...)`   | `(item1, item2, ...)`              | `(item1, item2, ...)`                                 |
 
+An `Enum` member is serialized by its value: `Kind.ADMIN` of a `class Kind(str, Enum)` renders as `'admin'`,
+a plain `Enum` holding a `datetime` as that `datetime`. A subclass is matched as its base type
+(a `ProfileId(UUID)` as a `UUID`, a `pendulum.DateTime` as a `datetime`). `bytes` and `bytearray` are not
+serialized: like any other type missing from the table they go to `serialize_other_object`.
+
 String values are escaped according to the dialect rules, so quotes, backslashes 
 and control characters cannot break the query:
 
