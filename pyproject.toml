@@ -1,13 +1,13 @@
 [project]
 name = "ddsql"
-description = "SQL Query Library"
-version = "0.4.0"
+description = "SQL queries from Jinja2 templates with typed results and Postgres and ClickHouse adapters"
+version = "0.4.1"
 authors = [{ name = "davyddd" }]
 license = "MIT"
 license-files = ["LICENSE"]
 readme = "README.md"
 requires-python = ">=3.11,<3.15"
-keywords = ["python", "ddsql"]
+keywords = ["python", "ddsql", "sql", "raw sql", "sql templates", "jinja2", "query builder", "serialization", "sql injection", "postgres", "postgresql", "clickhouse", "adapter", "asyncio"]
 # uv_build does not derive these from requires-python (poetry did); PyPI and the pyversions badge read them
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -18,7 +18,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "ddutils>=0.3.1,<0.4.0",
+    "ddutils>=0.3.1,<0.5.0",
     "jinja2>=3.0.0,<4.0.0",
 ]
 

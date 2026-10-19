@@ -23,7 +23,7 @@ class SQLBase(ABC):
     Subclasses must define at least one adapter as a class attribute.
 
     Attributes:
-        query: The SQL query to execute, either as a Query object or raw SQL string
+        query: The `Query` to execute
         params: Dictionary of parameters to be used in the query
     """
 
