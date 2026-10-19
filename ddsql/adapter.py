@@ -25,9 +25,7 @@ class Adapter(ABC):
         serializer = getattr(cls, 'serializer', None)
         serializer_class = getattr(serializer, '__class__', None)
         if not is_subclass(serializer_class, BaseSerializer):
-            raise NotImplementedError(
-                'Subclass of Adapter must define a valid serializer attribute that is a subclass of Serializer'
-            )
+            raise NotImplementedError('Subclass of Adapter must define a `serializer` attribute, an instance of BaseSerializer')
 
     def __init__(self, sql: SQLBase) -> None:
         self.sql = sql

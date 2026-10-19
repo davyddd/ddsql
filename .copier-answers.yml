@@ -1,10 +1,10 @@
 # Changes here will be overwritten by Copier; do NOT edit manually.
-_commit: v0.0.9
+_commit: v0.0.12
 _src_path: gh:davyddd/dd-lib-stub
 copyright_year: 2025
 max_python_version: '3.14'
 min_python_version: '3.11'
-package_description: SQL Query Library
-package_keywords: python, ddsql
+package_description: SQL queries from Jinja2 templates with typed results and Postgres and ClickHouse adapters
+package_keywords: python, ddsql, sql, raw sql, sql templates, jinja2, query builder, serialization, sql injection, postgres, postgresql, clickhouse, adapter, asyncio
 package_name: ddsql
 test_matrix: '{}'

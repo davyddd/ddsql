@@ -1,4 +1,4 @@
-# DDSQL
+# ddsql
 
 [![pypi](https://img.shields.io/pypi/v/ddsql.svg)](https://pypi.python.org/pypi/ddsql)
 [![downloads](https://static.pepy.tech/badge/ddsql/month)](https://pepy.tech/project/ddsql)
@@ -6,8 +6,7 @@
 [![codecov](https://codecov.io/gh/davyddd/ddsql/branch/main/graph/badge.svg)](https://app.codecov.io/github/davyddd/ddsql)
 [![license](https://img.shields.io/github/license/davyddd/ddsql.svg)](https://github.com/davyddd/ddsql/blob/main/LICENSE)
 
-**DDSQL** is a Python library for building SQL queries with Jinja2 template rendering and database adapter support.
-Query results are automatically deserialized into typed models.
+SQL queries from Jinja2 templates with typed results and Postgres and ClickHouse adapters
 
 ## Installation
 
@@ -29,7 +28,17 @@ fab bash       # bash inside the container
 ```
 
 This project was generated from [dd-lib-stub](https://github.com/davyddd/dd-lib-stub);
-run `copier update` to pull in template updates.
+run `uvx copier update` to pull in template updates.
+
+## Compatibility
+
+Python 3.11 to 3.14. What changed in each release, breaking changes included,
+is in the [GitHub releases](https://github.com/davyddd/ddsql/releases).
+
+<!-- The sections below are the library's own; copier update leaves them alone -->
+
+Depends on `jinja2>=3,<4` and `ddutils>=0.3.1,<0.5.0`; the database drivers are the project's, ddsql renders SQL
+and wraps rows while an adapter runs the query. The tests need no database.
 
 ## Serializer
 
@@ -53,8 +62,12 @@ or create your own by inheriting from `BaseSerializer`.
 
 An `Enum` member is serialized by its value: `Kind.ADMIN` of a `class Kind(str, Enum)` renders as `'admin'`,
 a plain `Enum` holding a `datetime` as that `datetime`. A subclass is matched as its base type
-(a `ProfileId(UUID)` as a `UUID`, a `pendulum.DateTime` as a `datetime`). `bytes` and `bytearray` are not
-serialized: like any other type missing from the table they go to `serialize_other_object`.
+(a `ProfileId(UUID)` as a `UUID`, a `pendulum.DateTime` as a `datetime`). The collection row covers any
+`Collection` that is not a mapping, a `str` or bytes, with the items serialized recursively; an empty collection
+renders as `()`, which is not valid after `IN`, so guard it in the template. `bytes`, `bytearray`, `dict` and other
+mappings, `time` and `timedelta` are not serialized: like any other type missing from the table they go to
+`serialize_other_object`, which raises `NotImplementedError` unless overridden. Numbers render with `str()`, so
+`float('inf')` and `float('nan')` produce `inf` and `nan`, which no database accepts.
 
 String values are escaped according to the dialect rules, so quotes, backslashes 
 and control characters cannot break the query:
@@ -103,7 +116,8 @@ WHERE
     AND created_at > {{ serialize_value(created_at) }}
 ```
 
-To add custom functions to templates, override the `template_functions` property:
+To add custom functions to templates, override the `template_functions` property. They are installed as Jinja
+globals, so they are available inside macros and included templates as well:
 
 ```python
 from ddsql.serializers import BaseSerializer
@@ -130,16 +144,24 @@ query inside `factory(alias=self.alias)`; see "Choosing the database" below.
 `Adapter` encapsulates database interactions. To create an adapter, inherit from the `Adapter` base class
 and define two required elements:
 - **serializer** – an instance of a serializer for converting Python types to SQL representations;
-- **_execute** method – the database-specific query execution logic.
+- **_execute** method – the database-specific query execution logic, returning the rows as a sequence of dicts.
+
+An adapter is created by `SQLBase` for one execution with the `SQL` object as `sql`; `get_query()` renders the
+template with the parameters and the serializer's functions, `execute()` runs `_execute()` and wraps the rows
+into a `Result`, `alias` is the connection chosen with `using()`.
 
 ```python
 from collections.abc import Sequence
 from typing import Any
 
+from ddutils.connections import ConnectionManagerFactory
 from sqlalchemy import text
 
 from ddsql.adapter import Adapter
 from ddsql.serializers import PostgresSerializer
+
+# a unit of work over the session registries, see ddutils' Connections
+atomic = ConnectionManagerFactory(session_registries, default=PostgresDB.PRIMARY, connection_manager_class=Atomic)
 
 
 class PostgresAdapter(Adapter):
@@ -152,8 +174,8 @@ class PostgresAdapter(Adapter):
             return [dict(zip(result.keys(), row)) for row in result.fetchall()]
 ```
 
-Intermediate adapter classes without `_execute` are abstract and need no `serializer`; only concrete
-adapters are validated.
+Intermediate adapter classes without `_execute` are abstract and need no `serializer`; a concrete adapter
+without one raises `NotImplementedError` at class definition.
 
 ### Choosing the database
 
@@ -165,12 +187,16 @@ await SQL(query).postgres.execute()                               # default conn
 await SQL(query).postgres.using(PostgresDB.REPLICA).execute()
 ```
 
+`SQL(query).postgres` creates a new adapter on every access, so `using()` and `execute()` must be chained in one
+expression: an alias set on one adapter instance is not seen by the next.
+
 ## SQLBase
 
 `SQLBase` is configured once per project and defines which adapters are available for query execution. 
 It serves as the central point that connects queries with database adapters.
 
-Create a subclass with one or more adapters:
+Create a subclass with one or more adapters; a subclass without any, inherited ones included, raises
+`NotImplementedError` at class definition:
 
 ```python
 from ddsql.sqlbase import SQLBase
@@ -192,6 +218,9 @@ query = Query(...)
 result = await SQL(query=query).with_params(email='test@test.test', is_deleted=False).postgres.execute()
 ```
 
+`with_params` merges into the object's parameters and returns the same object, so an `SQL` instance is one
+execution: build a new `SQL(query)` for every query instead of keeping one around.
+
 ## Query
 
 `Query` knows where to get the template from and how to render a SQL query. 
@@ -199,8 +228,14 @@ It also handles result deserialization via the `build_result` method,
 which wraps raw database rows into the specified model (called internally by `Adapter.execute`).
 
 Required parameters:
-- **model** – a declarative class (e.g., dataclass) describing the output result structure;
-- **text** or **path** – the SQL template source (inline string or path to a file).
+- **model** – any callable that takes the columns as keyword arguments and returns a row object: a dataclass, a
+  pydantic model, a `NamedTuple`;
+- **text** or **path** – the SQL template source (inline string or a `pathlib.Path` to a file). An empty `text`
+  counts as not given.
+
+`Query[User]` and `Result[User]` are generic in the model, so `result.get()` is typed as `User | None`.
+The Jinja environment is async with `trim_blocks`, `lstrip_blocks` and `keep_trailing_newline`; the rendered
+SQL has every line stripped of leading and trailing whitespace.
 
 ### Inline Template (text)
 
